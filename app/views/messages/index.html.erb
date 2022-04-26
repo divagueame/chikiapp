@@ -5,10 +5,10 @@
   <%= render partial: "messages/form", locals: {message: Message.new } %>
 </div>
 <div id="messages">
+
   <% @messages.each do |message| %>
-    <%= render message %>
     <p>
-      <%= link_to "Show this message", message %>
+          <strong>Message:</strong> <%= link_to message.body, message %>
     </p>
   <% end %>
 </div>
