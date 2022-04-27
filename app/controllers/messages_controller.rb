@@ -29,13 +29,13 @@ class MessagesController < ApplicationController
   # POST /messages or /messages.json
   def create
     @message = Message.new(message_params)
-
     respond_to do |format|
       if @message.save
         format.turbo_stream do
           render turbo_stream: [
             turbo_stream.update('new_message_form', partial: 'messages/form', locals: {message: Message.new}),
             turbo_stream.update('message_counter', Message.count),
+            turbo_stream.update('notice', "Message #{@message.id} created"),
             turbo_stream.prepend('messages', partial: 'messages/message', locals: {message: @message})
           ]
         end
@@ -59,9 +59,11 @@ class MessagesController < ApplicationController
     respond_to do |format|
       if @message.update(message_params)
         format.turbo_stream do
-          render turbo_stream: turbo_stream.update(@message,
+          render turbo_stream: [turbo_stream.update(@message,
                                                     partial: "messages/message",
-                                                    locals: { message: @message }) 
+                                                    locals: { message: @message }),
+          turbo_stream.update('notice', "Message #{@message.id} updated")
+                                                   ]
         end
         format.html { redirect_to message_url(@message), notice: "Message was successfully updated." }
         format.json { render :show, status: :ok, location: @message }
@@ -86,7 +88,8 @@ class MessagesController < ApplicationController
         # render turbo_stream: turbo_stream.remove(@message)
         render turbo_stream: [
           turbo_stream.remove("message_#{@message.id}"),
-          turbo_stream.update("message_counter", Message.count)
+          turbo_stream.update("message_counter", Message.count),
+          turbo_stream.update("notice", "Message #{@message.id} has been destroyed")
         ]
       end
       format.html { redirect_to messages_url, notice: "Message was successfully destroyed." }
