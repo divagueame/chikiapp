@@ -54,12 +54,22 @@ class MessagesController < ApplicationController
   end
 
   # PATCH/PUT /messages/1 or /messages/1.json
-  def update
+  def update 
     respond_to do |format|
       if @message.update(message_params)
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.update(@message,
+                                                    partial: "messages/message",
+                                                    locals: { message: @message }) 
+        end
         format.html { redirect_to message_url(@message), notice: "Message was successfully updated." }
         format.json { render :show, status: :ok, location: @message }
       else
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.update(@message,
+                                                    partial: "messages/form",
+                                                    locals: { message: @message }) 
+        end
         format.html { render :edit, status: :unprocessable_entity }
         format.json { render json: @message.errors, status: :unprocessable_entity }
       end
