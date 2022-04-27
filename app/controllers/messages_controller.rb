@@ -35,6 +35,7 @@ class MessagesController < ApplicationController
         format.turbo_stream do
           render turbo_stream: [
             turbo_stream.update('new_message_form', partial: 'messages/form', locals: {message: Message.new}),
+            turbo_stream.update('message_counter', Message.count),
             turbo_stream.prepend('messages', partial: 'messages/message', locals: {message: @message})
           ]
         end
@@ -81,10 +82,13 @@ class MessagesController < ApplicationController
     @message.destroy
 
     respond_to do |format|
-      format.turbo_stream {
+      format.turbo_stream do
         # render turbo_stream: turbo_stream.remove(@message)
-        render turbo_stream: turbo_stream.remove("message_#{@message.id}")
-      }
+        render turbo_stream: [
+          turbo_stream.remove("message_#{@message.id}"),
+          turbo_stream.update("message_counter", Message.count)
+        ]
+      end
       format.html { redirect_to messages_url, notice: "Message was successfully destroyed." }
       format.json { head :no_content }
     end
